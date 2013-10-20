@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.conriot.sona</groupId>
   <artifactId>mySQL</artifactId>
-  <version>0.0.1-INDEV</version>
+  <version>0.0.1-ALPHA</version>
   <name>mySQL</name>
     
   <repositories>
@@ -26,6 +26,11 @@
 	  <version>0.11.8</version>
 	  <scope>provided</scope>
     </dependency>
+    <dependency>
+	  <groupId>com.jolbox</groupId>
+	  <artifactId>bonecp</artifactId>
+	  <version>0.8.0-rc3</version>
+	</dependency>
   </dependencies>
   
   <build>
