@@ -38,10 +38,12 @@ class DatabaseManager {
 			this.ok = true;
 		} catch (SQLException e) {
 			// Error creating the connection pool
-			e.printStackTrace();
+			Bukkit.getLogger().severe("Could not create a connection pool with the given SQL credentials");
+			Bukkit.getLogger().severe(e.getMessage());
 		} catch (ClassNotFoundException e) {
 			// Error loading driver
-			e.printStackTrace();
+			Bukkit.getLogger().severe("Could not load the JDBC driver");
+			Bukkit.getLogger().severe(e.getMessage());
 		}
 	}
 	
@@ -50,7 +52,7 @@ class DatabaseManager {
 		if(caller == null)
 			return;
 		
-		// Check for any invalid conitions that would prevent a proper read
+		// Check for any invalid conitions that would prevent a proper query
 		if(plugin == null || !ok || query == null || !(query instanceof BasicQuery) || ((BasicQuery)query).getQuery() == null) {
 			Bukkit.getLogger().warning("Passed a query that could not be executed");
 			Bukkit.getScheduler().runTask(this.plugin, new Rejoin(caller, tag, null, false));
@@ -76,6 +78,7 @@ class DatabaseManager {
 		
 		@Override
 		public void run() {
+			// Make a call to the given callback with a result object to notify of completion
 			this.caller.complete(this.success, this.tag, this.result);
 		}
 	}
@@ -93,8 +96,10 @@ class DatabaseManager {
 		
 		@Override
 		public void run() {
+			// Assume failure until we know otherwise
 			boolean failed = true;
 			
+			// Try to create a connection to the database
 			Connection c;
 			try {
 				c = pool.getConnection();
@@ -104,31 +109,42 @@ class DatabaseManager {
 				c = null;
 			}
 			if(c != null) {
+				// Try to prepare a statement for execution
 				PreparedStatement ps = query.prepare(c);
 				if(ps != null) {
-					ResultSet rs;
+					// Try to execute the statement
 					try {
-						rs = ps.executeQuery();
+						if(ps.execute()) {
+							// The query returned some results, copy them into a result object
+							ResultSet rs = ps.getResultSet();
+							BasicResult r = new BasicResult(rs);
+							// try to close the result set
+							try {
+								rs.close();
+							} catch (SQLException e) {
+								Bukkit.getLogger().severe("Could not properly close SQL result set");
+								Bukkit.getLogger().severe(e.getMessage());
+								r = null;
+							}
+							// Verify result integrity
+							if(r != null && r.isOk()) {
+								// Note explicitly that we have NOT failed
+								failed = false;
+								// Rejoin and send our result back
+								Bukkit.getScheduler().runTaskLater(plugin, new Rejoin(caller, tag, r, true), 0);
+							}
+						} else {
+							// The query succeeded, but no data was returned
+							// Note explicitly that we have NOT failed
+							failed = false;
+							// Rejoin and do not send a result
+							Bukkit.getScheduler().runTaskLater(plugin, new Rejoin(caller, tag, null, true), 0);
+						}
 					} catch (SQLException e) {
 						Bukkit.getLogger().severe("Could not execute SQL query");
 						Bukkit.getLogger().severe(e.getMessage());
-						rs = null;
 					}
-					if(rs != null) {
-						BasicResult r;
-						r = new BasicResult(rs);
-						try {
-							rs.close();
-						} catch (SQLException e) {
-							Bukkit.getLogger().severe("Could not properly close SQL result set");
-							Bukkit.getLogger().severe(e.getMessage());
-							r = null;
-						}
-						if(r != null && r.isOk()) {
-							failed = false;
-							Bukkit.getScheduler().runTask(plugin, new Rejoin(caller, tag, r, true));
-						}
-					}
+					// Try to close our prepared statement
 					try {
 						ps.close();
 					} catch (SQLException e) {
@@ -136,6 +152,7 @@ class DatabaseManager {
 						Bukkit.getLogger().severe(e.getMessage());
 					}
 				}
+				// Try to close our connection
 				try {
 					c.close();
 				} catch (SQLException e) {
@@ -144,8 +161,9 @@ class DatabaseManager {
 				}
 			}
 			
+			// If no explicit success, notify our caller that the query failed
 			if(failed)
-				Bukkit.getScheduler().runTask(plugin, new Rejoin(caller, tag, null, false));
+				Bukkit.getScheduler().runTaskLater(plugin, new Rejoin(caller, tag, null, false), 0);
 		}
 	}
 }

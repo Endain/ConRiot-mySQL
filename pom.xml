@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.conriot.sona</groupId>
-  <artifactId>mySQL</artifactId>
+  <artifactId>CRM-MySQL</artifactId>
   <version>0.0.1-ALPHA</version>
-  <name>mySQL</name>
+  <name>CRM-MySQL</name>
     
   <repositories>
     <repository>
@@ -37,28 +37,27 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.8</version>
+        <artifactId>maven-shade-plugin</artifactId>
         <executions>
-          <execution>
-            <id>copy-model</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.bukkit</groupId>
-                  <artifactId>bukkit</artifactId>
-                  <version>1.6.4-R0.1-SNAPSHOT</version>
-                  <type>jar</type>
-                </artifactItem>
-              </artifactItems>
-              <outputDirectory>${project.build.directory}/lib</outputDirectory>
-            </configuration>
-          </execution>
+           <execution>
+              <phase>package</phase>	
+              <goals>
+                 <goal>shade</goal>
+              </goals>
+              <configuration>
+                 <artifactSet>
+                    <includes>
+                       <include>com.jolbox:bonecp</include>
+                       <include>com.google.guava:guava</include>
+                       <include>org.slf4j:slf4j-api</include>
+                    </includes>
+                 </artifactSet>
+              </configuration>
+           </execution>
         </executions>
+        <configuration>
+           <finalName>${project.artifactId}-${project.version}</finalName>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

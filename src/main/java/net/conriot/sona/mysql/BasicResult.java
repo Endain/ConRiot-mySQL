@@ -18,11 +18,12 @@ class BasicResult implements Result {
 		this.index = -1;
 		this.ok = true;
 		
+		// Attempt to copy data out of the given ResultSet
 		try {
 			while(data.next()) {
 				Object[] row = new Object[data.getMetaData().getColumnCount()];
 				for(int i = 0; i < data.getMetaData().getColumnCount(); i++)
-					row[i] = data.getObject(i);
+					row[i] = data.getObject(i + 1); // Result set starts at index 1
 				this.rows.add(row);
 			}
 		} catch (SQLException e) {
