@@ -2,8 +2,7 @@ package net.conriot.sona.mysql;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class MySQL extends JavaPlugin 
-{
+public class MySQL extends JavaPlugin {
 	private static DatabaseManager db;
 	
 	@Override
