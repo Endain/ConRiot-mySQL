@@ -26,9 +26,9 @@ class DatabaseManager {
 			Class.forName("com.mysql.jdbc.Driver"); 
 			// Set up the config
 			BoneCPConfig config = new BoneCPConfig();
-			config.setJdbcUrl("jdbc:mysql://127.1.0.0:3307/conriot");
-			config.setUsername("root");
-			config.setPassword("I<3tnt2013");
+			config.setJdbcUrl("jdbc:mysql://127.1.0.0:3306/example");
+			config.setUsername("user");
+			config.setPassword("password");
 			config.setMinConnectionsPerPartition(5);
 			config.setMaxConnectionsPerPartition(10);
 			config.setPartitionCount(3);
